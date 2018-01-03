@@ -1,5 +1,6 @@
 package com.example.termproject;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -21,6 +22,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +32,7 @@ import java.util.List;
  *
  */
 
-public class FileScannerActivity extends AppCompatActivity {
+public class FileScannerActivity extends Activity {
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
     private RecyclerViewAdapter recycleAdapter;
@@ -60,6 +63,13 @@ public class FileScannerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 updateFileItems(mRootPath);
+            }
+        });
+        ImageView backHomeHintImg = this.findViewById(R.id.backHomeHintImg);
+        backHomeHintImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
             }
         });
 
@@ -119,7 +129,25 @@ public class FileScannerActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     //加入数据库中
-                                    bookDBHelper.insertByItem(curFile.getName(),curFile.getAbsolutePath(),"","0%");
+                                    String pageSumStr = "1";
+                                    try{
+                                        RandomAccessFile randomAccessFile;
+                                        File txtFile = new File(curFile.getAbsolutePath());
+                                        randomAccessFile = new RandomAccessFile(txtFile,"r");
+                                        long bytesCount = randomAccessFile.length();//获得字节总数
+                                        long pageSum = bytesCount/TxtPlayer.pageSize;//计算得出文本的页数
+                                        //if(pageSum==0) pageSum =1;
+                                        pageSum +=1;
+                                        pageSumStr = String.valueOf(pageSum);//TODO 为什么是0？？
+
+                                        Toast.makeText(getApplication(),pageSumStr,Toast.LENGTH_SHORT).show();
+                                        randomAccessFile.close();
+                                    }
+                                    catch (IOException e){
+                                        e.printStackTrace();
+                                        Toast.makeText(getApplication(), e.toString(), Toast.LENGTH_SHORT).show();
+                                    }
+                                    bookDBHelper.insertByItem(curFile.getName(),curFile.getAbsolutePath(),"","0",pageSumStr);
                                     Toast.makeText(FileScannerActivity.this,"已加入", Toast.LENGTH_SHORT).show();
                                 }
                             })

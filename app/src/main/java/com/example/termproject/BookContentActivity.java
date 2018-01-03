@@ -24,7 +24,7 @@ import java.io.RandomAccessFile;
  * Created by qingming on 2017/12/31.
  */
 
-public class BookContentActivity extends Activity {
+public class BookContentActivity extends AppCompatActivity {
     private BookDBHelper bookDBHelper;
     private ProgressBar progressBar;
     private TextView bookContent;
@@ -32,7 +32,9 @@ public class BookContentActivity extends Activity {
     private ImageView backInContent;
     private Bundle bundle;
     private Book book;
-    private RandomAccessFile randomAccessFile;
+    //private RandomAccessFile randomAccessFile;
+    private TxtPlayer txtPlayer;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -46,14 +48,20 @@ public class BookContentActivity extends Activity {
         String bookName = bundle.getString("bookName");
         String bookTxtPath = bundle.getString("bookTxtPath");
 
+
+
+
         bookDBHelper = new BookDBHelper(this, BookDBHelper.DB_NAME, null, 1);
 
         book = bookDBHelper.selectByBookName(bookName);
 
+
         progressBar = (ProgressBar) findViewById(R.id.progressBarInContent);
-        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.GONE);
+        //主要内容
         bookContent = (TextView) this.findViewById(R.id.contentText);
         bookTitle = (TextView) this.findViewById(R.id.titleText);
+        //返回按键的事件设置
         backInContent = (ImageView) this.findViewById(R.id.backInContent);
         backInContent.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -61,13 +69,34 @@ public class BookContentActivity extends Activity {
                 finish();
             }
         });
+
+        //设置顶部标题
         bookTitle.setText(bookName.substring(0,bookName.indexOf(".")));
         if(!bookTxtPath.isEmpty()){
-            bookContent.setText(readTxtFile(bookTxtPath));
+            File txtFile = new File(book.getBookTxtPath());
+            txtPlayer = new TxtPlayer(txtFile,Long.parseLong(book.getBookCurPage()));
+            bookContent.setText(txtPlayer.read());
         }
+
+        //左右翻页按键
+        ImageView lastPage = (ImageView) this.findViewById(R.id.lastPage);
+        ImageView nextPage = (ImageView) findViewById(R.id.nextPage);
+        lastPage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bookContent.setText(txtPlayer.getLastPage());
+            }
+        });
+        nextPage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bookContent.setText(txtPlayer.getNextPage());
+            }
+        });
 
     }
 
+    /*
     private String readTxtFile(String bookTxtPath){
         StringBuilder txtContentStr = new StringBuilder("");
         try{
@@ -79,8 +108,10 @@ public class BookContentActivity extends Activity {
             }
         }
         catch (IOException e){
+            e.printStackTrace();
             Toast.makeText(getApplication(), e.toString(), Toast.LENGTH_SHORT).show();
         }
         return txtContentStr.toString();
     }
+    */
 }

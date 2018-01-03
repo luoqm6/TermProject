@@ -28,10 +28,16 @@ public class BookDBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_TABLE = "create table " + TABLE_NAME
                 + " (_id integer primary key autoincrement, "
+                //TXT的名字
                 + "bookName text unique, "
+                //TXT的路径
                 + "bookTxtPath text , "
+                //封面图像的路径
                 + "bookImgPath text , "
-                + "bookProgress text);";
+                //阅读当前页
+                + "bookCurPage text,"
+                //阅读当前页
+                + "bookPageSum text);";
         db.execSQL(CREATE_TABLE);
     }
 
@@ -41,19 +47,21 @@ public class BookDBHelper extends SQLiteOpenHelper {
     }
 
     //插入
-    public void insertByItem(String bookName, String bookTxtPath,String bookImgPath, String bookProgress) {
+    public void insertByItem(String bookName, String bookTxtPath,String bookImgPath,String bookCurPage, String bookPageSum) {
 
         //bookName不能为空，其他null时变为空字符串
         if(bookTxtPath == null) bookTxtPath = "";
         if(bookImgPath == null) bookImgPath = "";
-        if(bookProgress == null) bookProgress = "0%";
+        if(bookCurPage == null||bookCurPage.isEmpty()) bookCurPage = "0";
+        if(bookPageSum == null||bookPageSum.isEmpty()) bookPageSum = "1";
 
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("bookName", bookName);
         values.put("bookTxtPath", bookTxtPath);
         values.put("bookImgPath", bookImgPath);
-        values.put("bookProgress", bookProgress);
+        values.put("bookCurPage", bookCurPage);
+        values.put("bookPageSum", bookPageSum);
         db.insert(TABLE_NAME, null, values);
         db.close();
     }
@@ -65,23 +73,26 @@ public class BookDBHelper extends SQLiteOpenHelper {
         values.put("bookName", book.getBookName());
         values.put("bookTxtPath", book.getBookTxtPath());
         values.put("bookImgPath", book.getBookImgPath());
-        values.put("bookProgress", book.getBookProgress());
+        values.put("bookCurPage", book.getBookCurPage());
+        values.put("bookPageSum", book.getBookPageSum());
         db.insert(TABLE_NAME, null, values);
         db.close();
     }
 
-    public void update(String bookName, String bookTxtPath, String bookImgPath, String bookProgress) {
+    public void update(String bookName, String bookTxtPath, String bookImgPath, String bookCurPage,String bookPageSum) {
 
         //bookName不能为空，其他null时变为空字符串
         if(bookTxtPath == null) bookTxtPath = "";
         if(bookImgPath == null) bookImgPath = "";
-        if(bookProgress == null) bookProgress = "0%";
+        if(bookCurPage == null||bookCurPage.isEmpty()) bookCurPage = "0";
+        if(bookPageSum == null||bookPageSum.isEmpty()) bookPageSum = "1";
 
         SQLiteDatabase db = getWritableDatabase();
         String insert_sql = "update "+ TABLE_NAME
                 +" set bookTxtPath = '"+ bookTxtPath
                 +"',bookImgPath = '"+ bookImgPath
-                +"',bookProgress = '"+ bookProgress
+                +"',bookCurPage = '"+ bookCurPage
+                +"',bookPageSum = '"+ bookPageSum
                 +"' where bookName = '"+ bookName+"'" ;
         db.execSQL(insert_sql);
     }
@@ -92,7 +103,8 @@ public class BookDBHelper extends SQLiteOpenHelper {
         String insert_sql = "update "+ TABLE_NAME
                 +" set bookTxtPath = '"+ book.getBookTxtPath()
                 +"',bookImgPath = '"+ book.getBookImgPath()
-                +"',bookProgress = '"+ book.getBookProgress()
+                +"',bookCurPage = '"+ book.getBookCurPage()
+                +"',bookPageSum = '"+ book.getBookPageSum()
                 +"' where bookName = '"+ book.getBookName()+"'" ;
         db.execSQL(insert_sql);
     }
@@ -117,7 +129,8 @@ public class BookDBHelper extends SQLiteOpenHelper {
             tmp.put("bookName",cursor.getString(cursor.getColumnIndex("bookName")));
             tmp.put("bookTxtPath",cursor.getString(cursor.getColumnIndex("bookTxtPath")));
             tmp.put("bookImgPath",cursor.getString(cursor.getColumnIndex("bookImgPath")));
-            tmp.put("bookProgress",cursor.getString(cursor.getColumnIndex("bookProgress")));
+            tmp.put("bookCurPage",cursor.getString(cursor.getColumnIndex("bookCurPage")));
+            tmp.put("bookPageSum",cursor.getString(cursor.getColumnIndex("bookPageSum")));
             listItems.add(tmp);
         }
         cursor.close();
@@ -139,7 +152,8 @@ public class BookDBHelper extends SQLiteOpenHelper {
             book.setBookName(cursor.getString(cursor.getColumnIndex("bookName")));
             book.setBookTxtPath(cursor.getString(cursor.getColumnIndex("bookTxtPath")));
             book.setBookImgPath(cursor.getString(cursor.getColumnIndex("bookImgPath")));
-            book.setBookProgress(cursor.getString(cursor.getColumnIndex("bookProgress")));
+            book.setBookCurPage(cursor.getString(cursor.getColumnIndex("bookCurPage")));
+            book.setBookPageSum(cursor.getString(cursor.getColumnIndex("bookPageSum")));
             listItems.add(book);
         }
         cursor.close();
@@ -158,7 +172,8 @@ public class BookDBHelper extends SQLiteOpenHelper {
             book.setBookName(cursor.getString(cursor.getColumnIndex("bookName")));
             book.setBookTxtPath(cursor.getString(cursor.getColumnIndex("bookTxtPath")));
             book.setBookImgPath(cursor.getString(cursor.getColumnIndex("bookImgPath")));
-            book.setBookProgress(cursor.getString(cursor.getColumnIndex("bookProgress")));
+            book.setBookCurPage(cursor.getString(cursor.getColumnIndex("bookCurPage")));
+            book.setBookPageSum(cursor.getString(cursor.getColumnIndex("bookPageSum")));
         }
         cursor.close();
         return book;

@@ -20,10 +20,17 @@
             android:layout_height="match_parent"
             android:padding="5dp">
             <ImageView
+                android:id="@+id/backHomeHintImg"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_margin="5dp"
+                android:src="@mipmap/backicon1"/>
+            <ImageView
                 android:id="@+id/rootFolderHintImg"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
-                android:layout_margin="3dp"
+                android:layout_margin="5dp"
+                android:layout_toEndOf="@id/backHomeHintImg"
                 android:src="@mipmap/filefoldicon"/>
             <TextView
                 android:id="@+id/rootFolderNameHint"
@@ -51,7 +58,7 @@
                 android:id="@+id/folderBackImg1"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
-                android:layout_margin="3dp"
+                android:layout_margin="5dp"
                 android:layout_alignParentEnd="true"
                 android:src="@mipmap/backicon1"/>
         </RelativeLayout>
@@ -83,6 +90,7 @@
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/folderHintImg"
                 android:text="当前:"
+                android:textStyle="bold"
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:textSize="15sp"
@@ -92,6 +100,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/curFolderNameHint"
+                android:textStyle="bold"
                 android:text="血字分析"
                 android:maxLines="1"
                 android:ellipsize="end"

@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
         listItems.clear();
         for(int i=0;i<20;i++){
-            Book bk = new Book("book"+i+".txt",null,null,null);
+            Book bk = new Book("book"+i+".txt",null,null,"0","1");
             listItems.add(bk);
         }
         listItems.addAll(bookDBHelper.selectAllToBookList());
@@ -177,7 +177,8 @@ public class MainActivity extends AppCompatActivity
                 bookName.setText(b.getBookName());
                 if(b.getBookImgPath().isEmpty())bookImg.setImageResource(R.mipmap.bookicon1);
                 else bookImg.setImageURI(Uri.fromFile(new File(b.getBookImgPath())));
-                bookProgress.setText(b.getBookProgress());
+                String percent = b.getPercentage()+"%";
+                bookProgress.setText(percent);
                 bookName.setSingleLine();
                 bookName.setEllipsize(TextUtils.TruncateAt.valueOf("END"));
             }
