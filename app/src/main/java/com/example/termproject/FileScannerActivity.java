@@ -134,9 +134,8 @@ public class FileScannerActivity extends Activity {
                                         RandomAccessFile randomAccessFile;
                                         File txtFile = new File(curFile.getAbsolutePath());
                                         randomAccessFile = new RandomAccessFile(txtFile,"r");
-                                        long bytesCount = randomAccessFile.length();//获得字节总数
-                                        long pageSum = bytesCount/TxtPlayer.pageSize;//计算得出文本的页数
-                                        //if(pageSum==0) pageSum =1;
+                                        long pageSum = randomAccessFile.length();//获得字节总数
+                                        if(pageSum<=0) pageSum =1;
                                         pageSum +=1;
                                         pageSumStr = String.valueOf(pageSum);//TODO 为什么是0？？
 

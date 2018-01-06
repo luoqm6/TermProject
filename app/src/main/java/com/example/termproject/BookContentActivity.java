@@ -8,10 +8,15 @@ import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,12 +34,16 @@ public class BookContentActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView bookContent;
     private TextView bookTitle;
-    private ImageView backInContent;
+    private ImageButton backInContent;
     private Bundle bundle;
     private Book book;
+    private String bookName;
+    private String bookTxtPath;
     //private RandomAccessFile randomAccessFile;
     private TxtPlayer txtPlayer;
+    private int pageLineNum;
 
+    private ScrollView ScrollContent;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,11 +51,43 @@ public class BookContentActivity extends AppCompatActivity {
         setContentView(R.layout.activity_bookcontent);
         init();
     }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        book.setBookCurPlace(String.valueOf(txtPlayer.getCurrentPlace()));
+        book.setBookSize(String.valueOf(txtPlayer.getBookSize()));
+        bookDBHelper.updateByBook(book);
+    }
+
     private void init(){
 
         bundle = getIntent().getExtras();
-        String bookName = bundle.getString("bookName");
-        String bookTxtPath = bundle.getString("bookTxtPath");
+        bookName = bundle.getString("bookName");
+        bookTxtPath = bundle.getString("bookTxtPath");
 
 
 
@@ -60,9 +101,12 @@ public class BookContentActivity extends AppCompatActivity {
         progressBar.setVisibility(View.GONE);
         //主要内容
         bookContent = (TextView) this.findViewById(R.id.contentText);
+        //当前页可以显示的字符数
+        pageLineNum = 200;
+
         bookTitle = (TextView) this.findViewById(R.id.titleText);
         //返回按键的事件设置
-        backInContent = (ImageView) this.findViewById(R.id.backInContent);
+        backInContent = (ImageButton) this.findViewById(R.id.backInContent);
         backInContent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,44 +118,37 @@ public class BookContentActivity extends AppCompatActivity {
         bookTitle.setText(bookName.substring(0,bookName.indexOf(".")));
         if(!bookTxtPath.isEmpty()){
             File txtFile = new File(book.getBookTxtPath());
-            txtPlayer = new TxtPlayer(txtFile,Long.parseLong(book.getBookCurPage()));
+            txtPlayer = new TxtPlayer(txtFile,Long.parseLong(book.getBookCurPlace()));
             bookContent.setText(txtPlayer.read());
         }
 
         //左右翻页按键
-        ImageView lastPage = (ImageView) this.findViewById(R.id.lastPage);
-        ImageView nextPage = (ImageView) findViewById(R.id.nextPage);
+        ImageButton lastPage = (ImageButton) this.findViewById(R.id.lastPage);
+        ImageButton nextPage = (ImageButton) findViewById(R.id.nextPage);
+        ScrollContent = (ScrollView) findViewById(R.id.ScrollContent);
         lastPage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 bookContent.setText(txtPlayer.getLastPage());
+                ScrollContent.scrollTo(0,0);
             }
         });
         nextPage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 bookContent.setText(txtPlayer.getNextPage());
+                ScrollContent.scrollTo(0,0);
             }
         });
 
     }
-
-    /*
-    private String readTxtFile(String bookTxtPath){
-        StringBuilder txtContentStr = new StringBuilder("");
-        try{
-            File txtFile = new File(bookTxtPath);
-            randomAccessFile = new RandomAccessFile(txtFile,"r");
-            while(randomAccessFile.getFilePointer()<randomAccessFile.length()){
-                String ns = new String(randomAccessFile.readLine().getBytes("iso8859-1"),"UTF-8");
-                txtContentStr.append(ns).append("\n\n");
-            }
-        }
-        catch (IOException e){
-            e.printStackTrace();
-            Toast.makeText(getApplication(), e.toString(), Toast.LENGTH_SHORT).show();
-        }
-        return txtContentStr.toString();
+   /* public int getLineNum(){
+        Layout layout = bookContent.getLayout();
+        int topOfLastLine = bookContent.getHeight()-bookContent.getPaddingTop()
+                -bookContent.getPaddingBottom()-bookContent.getLineHeight();
+        return layout.getLineForVertical(topOfLastLine);
     }
-    */
+    public int getpageLineNum(){
+        return bookContent.getLayout().getLineEnd(getLineNum());
+    }*/
 }

@@ -99,10 +99,6 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         listItems.clear();
-        for(int i=0;i<20;i++){
-            Book bk = new Book("book"+i+".txt",null,null,"0","1");
-            listItems.add(bk);
-        }
         listItems.addAll(bookDBHelper.selectAllToBookList());
         recycleAdapter.notifyDataSetChanged();
     }
@@ -188,12 +184,19 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view, int position){
                 /*跳转至Repository model*/
-                Intent intent=new Intent(MainActivity.this,BookContentActivity.class);
-                Bundle bundle=new Bundle();
-                bundle.putString("bookName",listItems.get(position).getBookName());
-                bundle.putString("bookTxtPath",listItems.get(position).getBookTxtPath());
-                intent.putExtras(bundle);
-                startActivity(intent);
+                if(listItems.get(position).getBookTxtPath()!=null && !listItems.get(position).getBookTxtPath().isEmpty()) {
+                    Intent intent = new Intent(MainActivity.this, BookContentActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("bookName", listItems.get(position).getBookName());
+                    bundle.putString("bookTxtPath", listItems.get(position).getBookTxtPath());
+                    intent.putExtras(bundle);
+                    startActivity(intent);
+                }
+                else{
+                    Toast.makeText(getApplication(),"文件不存在!",Toast.LENGTH_LONG);
+                    listItems.remove(position);
+                    recycleAdapter.notifyDataSetChanged();
+                }
             }
             @Override
             public boolean onLongClick(View view,final int position){
@@ -207,6 +210,7 @@ public class MainActivity extends AppCompatActivity
                         .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                bookDBHelper.delete(listItems.get(position).getBookName());
                                 listItems.remove(position);
                                 recycleAdapter.notifyItemRemoved(position);
                                 recycleAdapter.notifyItemChanged(position);
