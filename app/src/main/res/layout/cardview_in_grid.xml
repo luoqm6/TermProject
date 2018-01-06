@@ -31,7 +31,7 @@
                 android:textSize="15sp"/>
             <TextView
                 android:id="@+id/bookProgressHint"
-                android:text="阅读进度:"
+                android:text="进度:"
                 android:layout_below="@+id/bookName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

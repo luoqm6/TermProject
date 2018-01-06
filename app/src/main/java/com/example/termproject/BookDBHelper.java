@@ -18,7 +18,8 @@ import java.util.Map;
 public class BookDBHelper extends SQLiteOpenHelper {
 
     public static final String DB_NAME = "BookData.db";
-    private static final String TABLE_NAME = "BookData";
+    private static final String BOOK_TABLE_NAME = "BookData";
+    private static final String CHAPTER_TABLE_NAME = "ChapterData";
     private static final int DB_VERSION = 1;
     //调用父类构造器
     public BookDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -26,7 +27,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
     }
 
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_TABLE = "create table " + TABLE_NAME
+        String CREATE_TABLE = "create table " + BOOK_TABLE_NAME
                 + " (_id integer primary key autoincrement, "
                 //TXT的名字
                 + "bookName text unique, "
@@ -34,10 +35,23 @@ public class BookDBHelper extends SQLiteOpenHelper {
                 + "bookTxtPath text , "
                 //封面图像的路径
                 + "bookImgPath text , "
-                //阅读当位置
+                //阅读当前位置
                 + "bookCurPlace text,"
                 //阅读总的字节数
-                + "bookSize text);";
+                + "bookSize text,"
+                //阅读总的字节数
+                + "firstTime text);";
+        db.execSQL(CREATE_TABLE);
+        CREATE_TABLE = "create table " + CHAPTER_TABLE_NAME
+                + " (_id integer primary key autoincrement, "
+                //TXT的名字
+                + "bookName text unique, "
+                //章节的名字
+                + "chapterName text , "
+                //章节开头的位置
+                + "chapterCurPlace text,"
+                //章节总的字节数
+                + "chapterSize text);";
         db.execSQL(CREATE_TABLE);
     }
 
@@ -46,8 +60,9 @@ public class BookDBHelper extends SQLiteOpenHelper {
         // To Do
     }
 
-    //插入
-    public void insertByItem(String bookName, String bookTxtPath,String bookImgPath,String bookCurPlace, String bookSize) {
+    //插入书籍
+    public void insertBookByItem(String bookName, String bookTxtPath,String bookImgPath
+            ,String bookCurPlace, String bookSize,String firstTime) {
 
         //bookName不能为空，其他null时变为空字符串
         if(bookTxtPath == null) bookTxtPath = "";
@@ -62,12 +77,12 @@ public class BookDBHelper extends SQLiteOpenHelper {
         values.put("bookImgPath", bookImgPath);
         values.put("bookCurPlace", bookCurPlace);
         values.put("bookSize", bookSize);
-        db.insert(TABLE_NAME, null, values);
+        db.insert(BOOK_TABLE_NAME, null, values);
         db.close();
     }
 
-    //插入
-    public void insertByBook(Book book) {
+    //插入书籍
+    public void insertBookByBook(Book book) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("bookName", book.getBookName());
@@ -75,11 +90,12 @@ public class BookDBHelper extends SQLiteOpenHelper {
         values.put("bookImgPath", book.getBookImgPath());
         values.put("bookCurPlace", book.getBookCurPlace());
         values.put("bookSize", book.getBookSize());
-        db.insert(TABLE_NAME, null, values);
+        db.insert(BOOK_TABLE_NAME, null, values);
         db.close();
     }
 
-    public void update(String bookName, String bookTxtPath, String bookImgPath, String bookCurPlace,String bookSize) {
+
+    public void updateBook(String bookName, String bookTxtPath, String bookImgPath, String bookCurPlace,String bookSize) {
 
         //bookName不能为空，其他null时变为空字符串
         if(bookTxtPath == null) bookTxtPath = "";
@@ -88,7 +104,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
         if(bookSize == null||bookSize.isEmpty()) bookSize = "1";
 
         SQLiteDatabase db = getWritableDatabase();
-        String insert_sql = "update "+ TABLE_NAME
+        String insert_sql = "update "+ BOOK_TABLE_NAME
                 +" set bookTxtPath = '"+ bookTxtPath
                 +"',bookImgPath = '"+ bookImgPath
                 +"',bookCurPlace = '"+ bookCurPlace
@@ -100,7 +116,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
     public void updateByBook(Book book) {
 
         SQLiteDatabase db = getWritableDatabase();
-        String insert_sql = "update "+ TABLE_NAME
+        String insert_sql = "update "+ BOOK_TABLE_NAME
                 +" set bookTxtPath = '"+ book.getBookTxtPath()
                 +"',bookImgPath = '"+ book.getBookImgPath()
                 +"',bookCurPlace = '"+ book.getBookCurPlace()
@@ -111,7 +127,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
 
     public void delete(String bookName) {
         SQLiteDatabase db = getWritableDatabase();
-        String delete_sql = "DELETE FROM "+ TABLE_NAME +"  WHERE bookName = '"+ bookName +"'";
+        String delete_sql = "DELETE FROM "+ BOOK_TABLE_NAME +"  WHERE bookName = '"+ bookName +"'";
         db.execSQL(delete_sql);
     }
 
@@ -121,7 +137,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
         List<Map<String,Object>> listItems = new ArrayList<>();
         //得到数据库以及数据库的cursor，遍历选出sqlite数据库内所有人物
         SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor = db.rawQuery("select * from "+TABLE_NAME, null);
+        Cursor cursor = db.rawQuery("select * from "+BOOK_TABLE_NAME+" order by _id desc", null);
 
         while(cursor.moveToNext()){
             //遍历Cursor对象，取出数据存入List中
@@ -144,7 +160,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
 
         //得到数据库以及数据库的cursor，遍历选出sqlite数据库内所有人物
         SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor = db.rawQuery("select * from "+TABLE_NAME, null);
+        Cursor cursor = db.rawQuery("select * from "+BOOK_TABLE_NAME+" order by _id desc", null);
 
         while(cursor.moveToNext()){
             //遍历Cursor对象，取出数据存入List中
@@ -162,9 +178,9 @@ public class BookDBHelper extends SQLiteOpenHelper {
 
     //按照书的名字查找书目
     public Book selectByBookName(String bookName){
-        //得到数据库以及数据库的cursor，遍历选出sqlite数据库内所有人物
+        //选出对应书名的书的信息
         SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor = db.rawQuery("select * from "+TABLE_NAME+" where bookName = '"+bookName +"'", null);
+        Cursor cursor = db.rawQuery("select * from "+BOOK_TABLE_NAME+" where bookName = '"+bookName +"'", null);
 
         Book book = new Book();
         while(cursor.moveToNext()){
@@ -178,4 +194,46 @@ public class BookDBHelper extends SQLiteOpenHelper {
         cursor.close();
         return book;
     }
+
+    //插入章节
+    public void insertChapterByItem(String bookName, String chapterName,String chapterCurPlace,String chapterSize) {
+
+        //bookName不能为空，其他null时变为空字符串
+        if(bookName == null) bookName = "";
+        if(chapterName == null) chapterName = "";
+        if(chapterCurPlace == null||chapterCurPlace.isEmpty()) chapterCurPlace = "0";
+        if(chapterSize == null||chapterSize.isEmpty()) chapterSize = "1";
+
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("bookName", bookName);
+        values.put("chapterName", chapterName);
+        values.put("chapterCurPlace", chapterCurPlace);
+        values.put("chapterSize", chapterSize);
+        db.insert(CHAPTER_TABLE_NAME, null, values);
+        db.close();
+    }
+
+    //返回含有每本书Book类的list
+    public List<Chapter> selectAllToChapterList(String bookName){
+        //用于返回的装有sqlite数据库内所有书目对应的book类的List
+        List<Chapter> listItems = new ArrayList<>();
+
+        //得到数据库以及数据库的cursor，遍历选出sqlite数据库内所有人物
+        SQLiteDatabase db = getWritableDatabase();
+        Cursor cursor = db.rawQuery("select * from "+BOOK_TABLE_NAME+" order by _id asc", null);
+
+        while(cursor.moveToNext()){
+            //遍历Cursor对象，取出数据存入List中
+            Chapter chapter = new Chapter();
+            chapter.setBookName(cursor.getString(cursor.getColumnIndex("bookName")));
+            chapter.setChapterName(cursor.getString(cursor.getColumnIndex("chapterName")));
+            chapter.setChapterCurPlace(cursor.getString(cursor.getColumnIndex("chapterCurPlace")));
+            chapter.setChapterSize(cursor.getString(cursor.getColumnIndex("chapterSize")));
+            listItems.add(chapter);
+        }
+        cursor.close();
+        return listItems;
+    }
+
 }

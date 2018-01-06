@@ -118,7 +118,7 @@ public class BookContentActivity extends AppCompatActivity {
         bookTitle.setText(bookName.substring(0,bookName.indexOf(".")));
         if(!bookTxtPath.isEmpty()){
             File txtFile = new File(book.getBookTxtPath());
-            txtPlayer = new TxtPlayer(txtFile,Long.parseLong(book.getBookCurPlace()));
+            txtPlayer = new TxtPlayer(txtFile,book.getBookName(),Long.parseLong(book.getBookCurPlace()));
             bookContent.setText(txtPlayer.read());
         }
 
@@ -130,7 +130,7 @@ public class BookContentActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 bookContent.setText(txtPlayer.getLastPage());
-                ScrollContent.scrollTo(0,0);
+                ScrollContent.smoothScrollTo(0,0);
             }
         });
         nextPage.setOnClickListener(new View.OnClickListener() {

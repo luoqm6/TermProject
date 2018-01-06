@@ -146,7 +146,7 @@ public class FileScannerActivity extends Activity {
                                         e.printStackTrace();
                                         Toast.makeText(getApplication(), e.toString(), Toast.LENGTH_SHORT).show();
                                     }
-                                    bookDBHelper.insertByItem(curFile.getName(),curFile.getAbsolutePath(),"","0",pageSumStr);
+                                    bookDBHelper.insertBookByItem(curFile.getName(),curFile.getAbsolutePath(),"","0",pageSumStr,"yes");
                                     Toast.makeText(FileScannerActivity.this,"已加入", Toast.LENGTH_SHORT).show();
                                 }
                             })

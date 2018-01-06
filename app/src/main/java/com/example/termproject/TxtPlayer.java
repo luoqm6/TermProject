@@ -17,15 +17,14 @@ import java.nio.charset.Charset;
 
 public class TxtPlayer  {
     private long bookSize;//总字节数
+    private String bookName;//书名
     public  int pageBtyeNum = 5000;//每一页的字节数 字节数固定
     private long CurrentPlace = 1;//当前页面
     private RandomAccessFile randomAccessFile;
     private String encoding = "GBK";
-    private String readStr = "";
-    private String lineStr = "";
     //构造方法，为了实现记录功能传入当前页 ，记录用户读取的位置
-    public  TxtPlayer(File file, long CurrentPlace)  {
-
+    public  TxtPlayer(File file,String bookName ,long CurrentPlace)  {
+        this.bookName = bookName;
         try {
             randomAccessFile = new RandomAccessFile(file,"r");
             bookSize = randomAccessFile.length();//获得字节总数
@@ -54,7 +53,7 @@ public class TxtPlayer  {
         //内容重叠防止 末尾字节乱码
         int curSizeInt = 0;
         String readStr = "";
-        String lineStr ;
+        String lineStr = "";
         try {
             //先到当前位置
             seekTo(CurrentPlace);
