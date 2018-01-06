@@ -140,7 +140,6 @@ public class BookContentActivity extends AppCompatActivity {
                 ScrollContent.scrollTo(0,0);
             }
         });
-
     }
    /* public int getLineNum(){
         Layout layout = bookContent.getLayout();
