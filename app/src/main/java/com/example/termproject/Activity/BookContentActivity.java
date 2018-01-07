@@ -1,5 +1,6 @@
 package com.example.termproject.Activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -63,9 +64,14 @@ public class BookContentActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bookcontent);
-        init();
+
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        init();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -139,35 +145,121 @@ public class BookContentActivity extends AppCompatActivity {
         bookTitle.setText(bookName.substring(0,bookName.indexOf(".")));
 
         //文件处理,得到文件
-        File txtFile = new File(book.getBookTxtPath());
+        final File txtFile = new File(book.getBookTxtPath());
 
         //初始化RandomAccessFile,检测设置文件编码类型
         //txtPlayer = new TxtPlayer(txtFile,book.getBookName(),Long.parseLong(book.getBookCurPlace()));
         setRandomAccessFile(txtFile,book.getBookName(),Long.parseLong(book.getBookCurPlace()));
 
-        final Handler handler = new Handler(){
+        final Handler divChtrHandler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                chapterList = bookDBHelper.selectAllToChapterList(bookName);
-                bookContent.setText(read());
-                progressBar.setVisibility(View.GONE);
+                if(msg.what==2){//分章节完毕
+                    Log.i("finished dividing","finished dividing");
+                    if(bookContent!=null){
+                        chapterList = bookDBHelper.selectAllToChapterList(bookName);
+                        bookContent.setText(read());
+                        progressBar.setVisibility(View.GONE);
+                    }
+                }
+                else if (msg.what==1){
+                    Log.i("dividing","dividing");
+                    if(bookContent!=null){
+                        chapterList = bookDBHelper.selectAllToChapterList(bookName);
+                        bookContent.setText(read());
+                        progressBar.setVisibility(View.GONE);
+                    }
+                }
+                else if (msg.what==0){//已经分了10章
+                    Log.i("dividing","dividing");
+                    Log.i("第一次","第一次发送");
+                    if(bookContent!=null){
+                        chapterList = bookDBHelper.selectAllToChapterList(bookName);
+                        bookContent.setText(read());
+                        progressBar.setVisibility(View.GONE);
+                    }
+                }
             }
         };
         //判断是否第一次阅读，是的话进行分章节
         if(book.isFirstTime()){
             bookContent.setText("正在分章节，请不要操作");
             progressBar.setVisibility(View.VISIBLE);
-            //进行分章节操作
+            book.setFirstTime("0");
 
+            //新建一个线程进行分章节操作
             Runnable runnable = new Runnable(){
+                String encodingInRun;
+                String bookNameInRun;
+                BookDBHelper DBHelperInRun ;
                 @Override
                 public void run() {
-                    divideChapter();
-                    //show=decodeUnicode(show);
-                    Message msg = new Message();
-                    handler.sendMessage(msg);
+                    bookContent.setText("正在分章节，请不要操作");
+                    progressBar.setVisibility(View.VISIBLE);
                     book.setFirstTime("0");
+                    bookNameInRun = bookName;
+                    divideChapter(txtFile);
+                    //show=decodeUnicode(show);
+                    divChtrHandler.obtainMessage(2).sendToTarget();
+                    //book.setFirstTime("0");
+                }
+                //分章节的操作
+                public void divideChapter(File file){//TODO divide the chapter
+                    //bookSize;
+                    long chapterCurPlace ;
+                    long lastChapter = 0;
+                    long chapterSize ;
+                    long curPlace = 0;
+                    long lastLine = 0;
+                    long bookSizeInRun = 1;
+                    String chapterName = "标题";
+                    String lastchapterName = "标题";
+                    String chapterContent = "";
+                    DBHelperInRun = new BookDBHelper(BookContentActivity.this, BookDBHelper.DB_NAME, null, 1);
+                    int chapterSum = 0;
+                    try{
+                        RandomAccessFile divFile = new RandomAccessFile(file,"r");
+                        divFile.seek(0);
+                        bookSizeInRun = divFile.length();//获得字节总数
+                        byte[] content = new byte[32];
+                        divFile.read(content);
+                        encodingInRun = getFileIncode(content);
+                        String line;
+                        IsChapter isChapter ;
+                        while (curPlace<bookSizeInRun){
+                            String readline = divFile.readLine();
+                            if(readline!=null) line = new String(readline.getBytes("iso8859-1"),encodingInRun);
+                            else line = "";
+                            curPlace = divFile.getFilePointer();
+                            isChapter = new IsChapter(line);
+                            /*Log.i("chapterDiv",String.valueOf(isChapter.getIsTitle()));
+                            Log.i("chapterDiv",line);*/
+                            if(isChapter.getIsTitle()){
+                                chapterCurPlace = lastChapter;
+                                chapterName = lastchapterName;
+                                chapterSize = chapterContent.getBytes().length;
+                                DBHelperInRun.insertChapterByItem(bookNameInRun,chapterName,String.valueOf(chapterCurPlace),String.valueOf(chapterSize));
+                                lastChapter = lastLine;
+                                lastchapterName = line;
+                                chapterContent = "";
+                            }
+                            lastLine = divFile.getFilePointer();
+                            chapterContent += line;
+                        }
+                        Log.i("停止时已读字节数",String.valueOf(curPlace));
+                        Log.i("停止时字节总数",String.valueOf(bookSizeInRun));
+                        chapterCurPlace = lastChapter;
+                        chapterName = lastchapterName;
+                        chapterSize = chapterContent.getBytes().length;
+                        DBHelperInRun.insertChapterByItem(bookNameInRun,chapterName,String.valueOf(chapterCurPlace),String.valueOf(chapterSize));
+
+                    }
+                    catch (IOException e){
+                        Log.i("停止时已读字节数",String.valueOf(curPlace));
+                        Log.i("停止时字节总数",String.valueOf(bookSizeInRun));
+                        Log.i("分章",e.getMessage());
+                    }
                 }
             };
             new Thread(runnable).start();
@@ -228,6 +320,7 @@ public class BookContentActivity extends AppCompatActivity {
             NextPageIndex = 1;
         }
         else if(PageIndex>=chapterList.size()-1) {
+            chapterList = bookDBHelper.selectAllToChapterList(bookName);
             CurrentPageIndex = chapterList.size()-1;
             LastPageIndex = CurrentPageIndex - 1;
             NextPageIndex = CurrentPageIndex;
@@ -264,7 +357,6 @@ public class BookContentActivity extends AppCompatActivity {
     }
 
     public String read(){
-        //内容重叠防止 末尾字节乱码
         int curSizeInt = 0;
         String readStr = "";
         String lineStr ;
@@ -275,9 +367,9 @@ public class BookContentActivity extends AppCompatActivity {
             curSizeInt += lineStr.getBytes().length;
             readStr += lineStr + "\n";
             Log.i("CurrentPageIndex",String.valueOf(CurrentPageIndex));
-            Log.i("chapterList.size()",String.valueOf(chapterList.size()));
-            if(CurrentPageIndex == chapterList.size()){
-                //一直读行直到下一个章节
+            //Log.i("chapterList.size()",String.valueOf(chapterList.size()));
+            if(CurrentPageIndex == chapterList.size()-1){//最后一个章节的处理
+                //一直读行直到全书完毕
                 while(randomAccessFile.getFilePointer() < bookSize){
                     lineStr = new String(randomAccessFile.readLine().getBytes("iso8859-1"),encoding);
                     readStr += lineStr + "\n";
@@ -338,60 +430,7 @@ public class BookContentActivity extends AppCompatActivity {
         return encoding;
     }
 
-    //分章节的操作
-    public void divideChapter(){//TODO divide the chapter
-        //bookSize;
-        long chapterCurPlace ;
-        long lastChapter = 0;
-        long chapterSize = 1;
-        long curPlace = 0;
-        long lastLine = 0;
-        String chapterName = "标题";
-        String lastchapterName = "标题";
-        String chapterContent = "";
-        try{
-            randomAccessFile.seek(0);
-            String line;
-            IsChapter isChapter = new IsChapter("第二章 sdf");
-            Log.i("chapterDiv",String.valueOf(isChapter.getIsTitle()));
-            while (curPlace<bookSize){
-                String readline = randomAccessFile.readLine();
-                if(readline!=null) line = new String(readline.getBytes("iso8859-1"),encoding);
-                else line = "";
-                curPlace = randomAccessFile.getFilePointer();
-                isChapter = new IsChapter(line);
-                Log.i("chapterDiv",String.valueOf(isChapter.getIsTitle()));
-                Log.i("chapterDiv",line);
-                if(isChapter.getIsTitle()){
-                    chapterCurPlace = lastChapter;
-                    chapterName = lastchapterName;
-                    chapterSize = chapterContent.getBytes().length;
-                    bookDBHelper.insertChapterByItem(bookName,chapterName,String.valueOf(chapterCurPlace),String.valueOf(chapterSize));
-                    lastChapter = lastLine;
-                    lastchapterName = line;
-                    chapterContent = "";
-                }
-                lastLine = randomAccessFile.getFilePointer();
-                chapterContent += line;
-            }
-            Log.i("停止时已读字节数",String.valueOf(curPlace));
-            Log.i("停止时字节总数",String.valueOf(bookSize));
-            chapterCurPlace = lastChapter;
-            chapterName = lastchapterName;
-            chapterSize = chapterContent.getBytes().length;
-            bookDBHelper.insertChapterByItem(bookName,chapterName,String.valueOf(chapterCurPlace),String.valueOf(chapterSize));
 
-        }
-        catch (IOException e){
-            Log.i("停止时已读字节数",String.valueOf(curPlace));
-            Log.i("停止时字节总数",String.valueOf(bookSize));
-            Log.i("分章",e.getMessage());
-        }
-        LastPageIndex = 0;
-        CurrentPageIndex = 0;
-        NextPageIndex = 1;
-        CurrentPlace = 0;
-    }
 
    /* public int getLineNum(){
         Layout layout = bookContent.getLayout();

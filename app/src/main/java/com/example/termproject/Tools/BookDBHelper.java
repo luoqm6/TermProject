@@ -229,7 +229,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
                 + chapterName+"','"
                 + chapterCurPlace+"','"
                 + chapterSize+"');";
-        Log.i("insert_sql",insert_sql);
+        //Log.i("insert_sql",insert_sql);
         db.execSQL(insert_sql);
         db.close();
     }
@@ -255,6 +255,11 @@ public class BookDBHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return listItems;
+    }
+    public void deleteChapter(String bookName) {
+        SQLiteDatabase db = getWritableDatabase();
+        String delete_sql = "DELETE FROM "+ CHAPTER_TABLE_NAME +"  WHERE bookName = '"+ bookName +"'";
+        db.execSQL(delete_sql);
     }
 
 }

@@ -215,6 +215,7 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 bookDBHelper.delete(listItems.get(position).getBookName());
+                                bookDBHelper.deleteChapter(listItems.get(position).getBookName());
                                 listItems.remove(position);
                                 recycleAdapter.notifyItemRemoved(position);
                                 recycleAdapter.notifyItemChanged(position);
