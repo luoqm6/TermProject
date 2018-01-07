@@ -1,11 +1,10 @@
-package com.example.termproject;
+package com.example.termproject.Activity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,8 +22,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.termproject.Model.Book;
+import com.example.termproject.R;
+import com.example.termproject.Tools.BookDBHelper;
+import com.example.termproject.ViewAdapter.RecyclerViewAdapter;
+import com.example.termproject.ViewAdapter.ViewHolder;
+
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 

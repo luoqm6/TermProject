@@ -1,4 +1,4 @@
-package com.example.termproject;
+package com.example.termproject.Model;
 
 import android.os.Bundle;
 

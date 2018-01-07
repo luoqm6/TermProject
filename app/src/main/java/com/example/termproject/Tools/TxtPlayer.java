@@ -1,15 +1,12 @@
-package com.example.termproject;
+package com.example.termproject.Tools;
 
 import android.util.Log;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import java.io.BufferedInputStream;
+import com.example.termproject.Tools.BookDBHelper;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.charset.Charset;
 
 /**
  * Created by qingming on 2018/1/2.
@@ -18,7 +15,8 @@ import java.nio.charset.Charset;
 public class TxtPlayer  {
     private long bookSize;//总字节数
     private String bookName;//书名
-    public  int pageBtyeNum = 5000;//每一页的字节数 字节数固定
+    private BookDBHelper bookDBHelper;
+    public  int pageByteNum = 5000;//每一页的字节数 字节数固定
     private long CurrentPlace = 1;//当前页面
     private RandomAccessFile randomAccessFile;
     private String encoding = "GBK";
@@ -60,7 +58,7 @@ public class TxtPlayer  {
             lineStr = new String(randomAccessFile.readLine().getBytes("iso8859-1"),encoding);
             curSizeInt += lineStr.getBytes().length;
             readStr += lineStr + "\n";
-            while(curSizeInt<pageBtyeNum){
+            while(curSizeInt<pageByteNum){
                 //lineStr = new String(randomAccessFile.readLine().getBytes("iso8859-1"),encoding);
                 Log.i("curSizeInt",String.valueOf(curSizeInt));
 
@@ -78,7 +76,7 @@ public class TxtPlayer  {
     //上一页功能的实现
     public String getLastPage(){
         String content ;
-        CurrentPlace -= pageBtyeNum;
+        CurrentPlace -= pageByteNum;
         //第一页 的情况 定位在0字节处 读取内容 当前页数不改变
         if(CurrentPlace <= 0){
             CurrentPlace = 0;
@@ -94,7 +92,7 @@ public class TxtPlayer  {
     //下一页功能的实现
     public String getNextPage(){
         String content ;
-        CurrentPlace += pageBtyeNum;
+        CurrentPlace += pageByteNum;
         if(CurrentPlace >= bookSize){//当前页为最后一页时候,显示的还是 最后一页
             CurrentPlace = bookSize;
             content = read();

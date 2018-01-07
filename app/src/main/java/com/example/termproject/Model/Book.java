@@ -1,4 +1,4 @@
-package com.example.termproject;
+package com.example.termproject.Model;
 
 import android.os.Bundle;
 
@@ -18,6 +18,7 @@ public class Book implements Serializable {
     private String bookImgPath;//Book的图片地址，封面图像的路径
     private String bookCurPlace;//Book的阅读进度，阅读当前所处字节处
     private String bookSize;//Book的总的字节数
+    private String firstTime;//是不是第一次看这本书1表示是，0表示不是
 
     public Book(){
         this.bookName="";
@@ -25,22 +26,26 @@ public class Book implements Serializable {
         this.bookImgPath="";
         this.bookCurPlace="0";
         this.bookSize="1";
+        this.firstTime="1";
     }
     public Book(Bundle bundle){
         setByBundle(bundle);
     }
-    public Book(String bookName, String bookTxtPath,String bookImgPath,String bookCurPlace ,String bookSize){
+    public Book(String bookName, String bookTxtPath,String bookImgPath
+            ,String bookCurPlace ,String bookSize,String firstTime){
         this.bookName=bookName;
         this.bookTxtPath=bookTxtPath;
         this.bookImgPath=bookImgPath;
         this.bookCurPlace=bookCurPlace;
         this.bookSize=bookSize;
+        this.firstTime=firstTime;
 
         //bookName不能为空，其他null时变为空字符串
         if(this.bookTxtPath == null) this.bookTxtPath = "";
         if(this.bookImgPath == null) this.bookImgPath = "";
         if(this.bookCurPlace == null ||this.bookCurPlace.isEmpty()) this.bookCurPlace = "0";
         if(this.bookSize == null ||this.bookSize.isEmpty()) this.bookSize = "1";
+        if(this.firstTime == null ||this.firstTime.isEmpty()) this.firstTime = "1";
     }
     public Book(Book book){
         this.bookName=book.getBookName();
@@ -48,6 +53,7 @@ public class Book implements Serializable {
         this.bookImgPath=book.getBookImgPath();
         this.bookCurPlace=book.getBookCurPlace();
         this.bookSize=book.getBookSize();
+        this.firstTime=book.getFirstTime();
     }
     public String getBookName(){
         return bookName;
@@ -63,6 +69,9 @@ public class Book implements Serializable {
     }
     public String getBookSize(){
         return bookSize;
+    }
+    public String getFirstTime(){
+        return firstTime;
     }
 
     public Book setBookName(java.lang.String bookName) {
@@ -89,6 +98,10 @@ public class Book implements Serializable {
         this.bookCurPlace = bookCurPlace;
         return this;
     }
+    public Book setFirstTime(String firstTime){
+        this.firstTime = firstTime;
+        return this;
+    }
 
     public Bundle putInBundle(){
         Bundle bundle = new Bundle();
@@ -97,6 +110,7 @@ public class Book implements Serializable {
         bundle.putString("bookImgPath",bookImgPath);
         bundle.putString("bookCurPlace",bookCurPlace);
         bundle.putString("bookSize",bookSize);
+        bundle.putString("firstTime",firstTime);
         return bundle;
     }
     public void setByBundle(Bundle bundle){
@@ -105,6 +119,7 @@ public class Book implements Serializable {
         this.bookImgPath=bundle.getString("bookImgPath");
         this.bookCurPlace=bundle.getString("bookCurPlace");
         this.bookSize=bundle.getString("bookSize");
+        this.firstTime=bundle.getString("firstTime");
     }
     public static List<Map<String,Object>> getSimpleList(List<Map<String,Book>> listItems){
         List<Map<String,Object>> simpleListItems=new ArrayList<>();
@@ -115,6 +130,7 @@ public class Book implements Serializable {
             tmp.put("bookImgPath",listItems.get(i).get("Book").getBookImgPath());
             tmp.put("bookCurPlace",listItems.get(i).get("Book").getBookCurPlace());
             tmp.put("bookSize",listItems.get(i).get("Book").getBookSize());
+            tmp.put("firstTime",listItems.get(i).get("Book").getFirstTime());
             simpleListItems.add(tmp);
         }
         return simpleListItems;
@@ -128,5 +144,9 @@ public class Book implements Serializable {
             percent = Double.valueOf(tmp).intValue();
 
         return String.valueOf(percent);
+    }
+    public boolean isFirstTime(){
+        if(firstTime.equals("1")) return true;
+        else return false;
     }
 }

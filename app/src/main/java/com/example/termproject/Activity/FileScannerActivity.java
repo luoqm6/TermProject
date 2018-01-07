@@ -1,16 +1,12 @@
-package com.example.termproject;
+package com.example.termproject.Activity;
 
 import android.app.Activity;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -20,6 +16,11 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.termproject.R;
+import com.example.termproject.Tools.BookDBHelper;
+import com.example.termproject.ViewAdapter.RecyclerViewAdapter;
+import com.example.termproject.ViewAdapter.ViewHolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -117,7 +118,7 @@ public class FileScannerActivity extends Activity {
                     updateFileItems(fileAbsolutePath) ;
                 else if(curFile.getName().endsWith(".txt")) {
                     //是txt文件 ，存入数据库
-                    Toast.makeText(FileScannerActivity.this,fileAbsolutePath, Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(FileScannerActivity.this,fileAbsolutePath, Toast.LENGTH_SHORT).show();
                     AlertDialog.Builder builder=new AlertDialog.Builder(FileScannerActivity.this);
                     builder.setMessage("将文件加入列表?")
                             .setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -146,7 +147,7 @@ public class FileScannerActivity extends Activity {
                                         e.printStackTrace();
                                         Toast.makeText(getApplication(), e.toString(), Toast.LENGTH_SHORT).show();
                                     }
-                                    bookDBHelper.insertBookByItem(curFile.getName(),curFile.getAbsolutePath(),"","0",pageSumStr,"yes");
+                                    bookDBHelper.insertBookByItem(curFile.getName(),curFile.getAbsolutePath(),"","0",pageSumStr,"1");
                                     Toast.makeText(FileScannerActivity.this,"已加入", Toast.LENGTH_SHORT).show();
                                 }
                             })

@@ -1,10 +1,14 @@
-package com.example.termproject;
+package com.example.termproject.Tools;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import com.example.termproject.Model.Book;
+import com.example.termproject.Model.Chapter;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -39,15 +43,15 @@ public class BookDBHelper extends SQLiteOpenHelper {
                 + "bookCurPlace text,"
                 //阅读总的字节数
                 + "bookSize text,"
-                //阅读总的字节数
+                ////是不是第一次看这本书1表示是，0表示不是
                 + "firstTime text);";
         db.execSQL(CREATE_TABLE);
         CREATE_TABLE = "create table " + CHAPTER_TABLE_NAME
                 + " (_id integer primary key autoincrement, "
                 //TXT的名字
-                + "bookName text unique, "
+                + "bookName text, "
                 //章节的名字
-                + "chapterName text , "
+                + "chapterName text unique, "
                 //章节开头的位置
                 + "chapterCurPlace text,"
                 //章节总的字节数
@@ -69,15 +73,19 @@ public class BookDBHelper extends SQLiteOpenHelper {
         if(bookImgPath == null) bookImgPath = "";
         if(bookCurPlace == null||bookCurPlace.isEmpty()) bookCurPlace = "0";
         if(bookSize == null||bookSize.isEmpty()) bookSize = "1";
+        if(firstTime == null||firstTime.isEmpty()) bookSize = "1";
 
         SQLiteDatabase db = getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("bookName", bookName);
-        values.put("bookTxtPath", bookTxtPath);
-        values.put("bookImgPath", bookImgPath);
-        values.put("bookCurPlace", bookCurPlace);
-        values.put("bookSize", bookSize);
-        db.insert(BOOK_TABLE_NAME, null, values);
+        String insert_sql = "replace into "+ BOOK_TABLE_NAME
+                +"(bookName,bookTxtPath,bookImgPath,bookCurPlace,bookSize,firstTime) values('"
+                + bookName+"','"
+                + bookTxtPath+"','"
+                + bookImgPath+"','"
+                + bookCurPlace+"','"
+                + bookSize+"','"
+                + firstTime+"');";
+        Log.i("insert_sql",insert_sql);
+        db.execSQL(insert_sql);
         db.close();
     }
 
@@ -90,39 +98,45 @@ public class BookDBHelper extends SQLiteOpenHelper {
         values.put("bookImgPath", book.getBookImgPath());
         values.put("bookCurPlace", book.getBookCurPlace());
         values.put("bookSize", book.getBookSize());
+        values.put("firstTime", book.getFirstTime());
         db.insert(BOOK_TABLE_NAME, null, values);
         db.close();
     }
 
 
-    public void updateBook(String bookName, String bookTxtPath, String bookImgPath, String bookCurPlace,String bookSize) {
+    public void updateBook(String bookName, String bookTxtPath, String bookImgPath,
+                           String bookCurPlace,String bookSize,String firstTime) {
 
         //bookName不能为空，其他null时变为空字符串
         if(bookTxtPath == null) bookTxtPath = "";
         if(bookImgPath == null) bookImgPath = "";
         if(bookCurPlace == null||bookCurPlace.isEmpty()) bookCurPlace = "0";
         if(bookSize == null||bookSize.isEmpty()) bookSize = "1";
+        if(firstTime == null||firstTime.isEmpty()) firstTime = "1";
+
 
         SQLiteDatabase db = getWritableDatabase();
-        String insert_sql = "update "+ BOOK_TABLE_NAME
+        String update_sql = "update "+ BOOK_TABLE_NAME
                 +" set bookTxtPath = '"+ bookTxtPath
                 +"',bookImgPath = '"+ bookImgPath
                 +"',bookCurPlace = '"+ bookCurPlace
                 +"',bookSize = '"+ bookSize
+                +"',firstTime = '"+ firstTime
                 +"' where bookName = '"+ bookName+"'" ;
-        db.execSQL(insert_sql);
+        db.execSQL(update_sql);
     }
 
     public void updateByBook(Book book) {
 
         SQLiteDatabase db = getWritableDatabase();
-        String insert_sql = "update "+ BOOK_TABLE_NAME
+        String update_sql = "update "+ BOOK_TABLE_NAME
                 +" set bookTxtPath = '"+ book.getBookTxtPath()
                 +"',bookImgPath = '"+ book.getBookImgPath()
                 +"',bookCurPlace = '"+ book.getBookCurPlace()
                 +"',bookSize = '"+ book.getBookSize()
+                +"',firstTime = '"+ book.getFirstTime()
                 +"' where bookName = '"+ book.getBookName()+"'" ;
-        db.execSQL(insert_sql);
+        db.execSQL(update_sql);
     }
 
     public void delete(String bookName) {
@@ -147,6 +161,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
             tmp.put("bookImgPath",cursor.getString(cursor.getColumnIndex("bookImgPath")));
             tmp.put("bookCurPlace",cursor.getString(cursor.getColumnIndex("bookCurPlace")));
             tmp.put("bookSize",cursor.getString(cursor.getColumnIndex("bookSize")));
+            tmp.put("firstTime",cursor.getString(cursor.getColumnIndex("firstTime")));
             listItems.add(tmp);
         }
         cursor.close();
@@ -170,6 +185,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
             book.setBookImgPath(cursor.getString(cursor.getColumnIndex("bookImgPath")));
             book.setBookCurPlace(cursor.getString(cursor.getColumnIndex("bookCurPlace")));
             book.setBookSize(cursor.getString(cursor.getColumnIndex("bookSize")));
+            book.setFirstTime(cursor.getString(cursor.getColumnIndex("firstTime")));
             listItems.add(book);
         }
         cursor.close();
@@ -190,6 +206,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
             book.setBookImgPath(cursor.getString(cursor.getColumnIndex("bookImgPath")));
             book.setBookCurPlace(cursor.getString(cursor.getColumnIndex("bookCurPlace")));
             book.setBookSize(cursor.getString(cursor.getColumnIndex("bookSize")));
+            book.setFirstTime(cursor.getString(cursor.getColumnIndex("firstTime")));
         }
         cursor.close();
         return book;
@@ -204,13 +221,16 @@ public class BookDBHelper extends SQLiteOpenHelper {
         if(chapterCurPlace == null||chapterCurPlace.isEmpty()) chapterCurPlace = "0";
         if(chapterSize == null||chapterSize.isEmpty()) chapterSize = "1";
 
+
         SQLiteDatabase db = getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("bookName", bookName);
-        values.put("chapterName", chapterName);
-        values.put("chapterCurPlace", chapterCurPlace);
-        values.put("chapterSize", chapterSize);
-        db.insert(CHAPTER_TABLE_NAME, null, values);
+        String insert_sql = "replace into "+ CHAPTER_TABLE_NAME
+                +"(bookName,chapterName,chapterCurPlace,chapterSize) values('"
+                + bookName+"','"
+                + chapterName+"','"
+                + chapterCurPlace+"','"
+                + chapterSize+"');";
+        Log.i("insert_sql",insert_sql);
+        db.execSQL(insert_sql);
         db.close();
     }
 
@@ -221,7 +241,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
 
         //得到数据库以及数据库的cursor，遍历选出sqlite数据库内所有人物
         SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor = db.rawQuery("select * from "+BOOK_TABLE_NAME+" order by _id asc", null);
+        Cursor cursor = db.rawQuery("select * from "+CHAPTER_TABLE_NAME+" where bookName = '"+bookName +"'"+" order by _id asc", null);
 
         while(cursor.moveToNext()){
             //遍历Cursor对象，取出数据存入List中
@@ -230,6 +250,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
             chapter.setChapterName(cursor.getString(cursor.getColumnIndex("chapterName")));
             chapter.setChapterCurPlace(cursor.getString(cursor.getColumnIndex("chapterCurPlace")));
             chapter.setChapterSize(cursor.getString(cursor.getColumnIndex("chapterSize")));
+            Log.i("chapter",chapter.getBookName()+"\n"+chapter.getChapterName()+"\n"+chapter.getChapterCurPlace());
             listItems.add(chapter);
         }
         cursor.close();

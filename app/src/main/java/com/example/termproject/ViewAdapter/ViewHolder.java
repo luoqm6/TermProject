@@ -1,4 +1,4 @@
-package com.example.termproject;
+package com.example.termproject.ViewAdapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
