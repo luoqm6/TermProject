@@ -365,7 +365,7 @@ public class BookContentActivity extends AppCompatActivity {
                                 chapterSize = chapterContent.getBytes().length;
                                 DBHelperInRun.insertChapterByItem(bookNameInRun,chapterName,String.valueOf(chapterCurPlace),String.valueOf(chapterSize));
                                 lastChapter = lastLine;
-                                lastchapterName = line;
+                                lastchapterName = isChapter.getOuput();
                                 chapterContent = "";
                                 chapterSum++;
                             }
