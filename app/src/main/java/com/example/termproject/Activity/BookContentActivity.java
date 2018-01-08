@@ -1,26 +1,40 @@
 package com.example.termproject.Activity;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.nfc.Tag;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Parcel;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.termproject.Model.Book;
 import com.example.termproject.Model.Chapter;
 import com.example.termproject.R;
+import com.example.termproject.Service.DivideChapterService;
 import com.example.termproject.Tools.BookDBHelper;
 import com.example.termproject.Tools.IsChapter;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +51,7 @@ public class BookContentActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView bookContent;
     private TextView bookTitle;
-    private ImageButton backInContent;
+
     private Bundle bundle;
     private Book book;
     private String bookTxtPath;
@@ -45,6 +59,10 @@ public class BookContentActivity extends AppCompatActivity {
 
     private long bookSize;//总字节数
     private String bookName;//书名
+
+    private Spinner bottomSpinner;
+    private ArrayAdapter<String> bottomSpinnerAdapter;
+    private ArrayList<String>  chapterStringList = new ArrayList<String>();
 
     private long CurrentPlace = 0;//当前字节位置
     private int LastPageIndex = 0;//上一个章节下标位置
@@ -88,7 +106,71 @@ public class BookContentActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.text_size) {
+            final AlertDialog.Builder sizeAlertDialog = new AlertDialog.Builder(this);
+            final String mitems[] = {"字体：超大", "字体：大", "字体：适中","字体：小","字体：超小"};
+            sizeAlertDialog.setTitle("设置字体大小")
+                    .setItems(mitems, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            SharedPreferences preferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = preferences.edit();
+                            if (mitems[i].equals("字体：超大")) {
+                                editor.putString("字体","超大");
+                            }
+                            else if (mitems[i].equals("字体：大")) {
+                                editor.putString("字体","大");
+                            }
+                            else if (mitems[i].equals("字体：适中")) {
+                                editor.putString("字体","适中");
+                            }
+                            else if (mitems[i].equals("字体：小")) {
+                                editor.putString("字体","小");
+                            }
+                            else if (mitems[i].equals("字体：超小")) {
+                                editor.putString("字体","超小");
+                            }
+                            editor.apply();
+                            setSettings();
+                        }
+                    })
+                    .setNegativeButton("取消",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    //Toast.makeText(getApplication(), "你点击了取消", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                    .create().show();
+            return true;
+        }
+        else if(id == R.id.day_night){
+            final AlertDialog.Builder day_nightAlertDialog = new AlertDialog.Builder(this);
+            final String mitems[] = {"日间模式", "夜间模式"};
+            day_nightAlertDialog.setTitle("设置阅读模式")
+                    .setItems(mitems, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            SharedPreferences preferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = preferences.edit();
+                            if (mitems[i].equals("日间模式")) {
+                                editor.putString("模式","日间模式");
+                            }
+                            else if (mitems[i].equals("夜间模式")) {
+                                editor.putString("模式","夜间模式");
+                            }
+                            editor.apply();
+                            setSettings();
+                        }
+                    })
+                    .setNegativeButton("取消",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    //Toast.makeText(getApplication(), "你点击了取消", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                    .create().show();
             return true;
         }
 
@@ -132,14 +214,9 @@ public class BookContentActivity extends AppCompatActivity {
         //pageLineNum = 200;
 
         bookTitle = (TextView) this.findViewById(R.id.titleText);
-        //返回按键的事件设置
-        backInContent = (ImageButton) this.findViewById(R.id.backInContent);
-        backInContent.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+
+
+
 
         //设置顶部标题
         bookTitle.setText(bookName.substring(0,bookName.indexOf(".")));
@@ -150,6 +227,48 @@ public class BookContentActivity extends AppCompatActivity {
         //初始化RandomAccessFile,检测设置文件编码类型
         //txtPlayer = new TxtPlayer(txtFile,book.getBookName(),Long.parseLong(book.getBookCurPlace()));
         setRandomAccessFile(txtFile,book.getBookName(),Long.parseLong(book.getBookCurPlace()));
+
+
+        //返回按键的事件设置
+        ImageButton backInContent = (ImageButton) this.findViewById(R.id.backInContent);
+        backInContent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
+        //左右翻页按键
+        ImageButton lastPage = (ImageButton) this.findViewById(R.id.lastPage);
+        ImageButton nextPage = (ImageButton) findViewById(R.id.nextPage);
+        ScrollContent = (ScrollView) findViewById(R.id.ScrollContent);
+        lastPage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bookContent.setText(getLastPage());
+                ScrollContent.smoothScrollTo(0,0);
+            }
+        });
+        nextPage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bookContent.setText(getNextPage());
+                ScrollContent.scrollTo(0,0);
+            }
+        });
+        //跳转至翻译的按键设置
+        ImageButton translate_button = (ImageButton) findViewById(R.id.translate_button);
+        translate_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(BookContentActivity.this,TranslateActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("translateContent",bookContent.getText().toString());
+                intent.putExtras(bundle);
+                startActivity(intent);
+            }
+        });
+
 
         final Handler divChtrHandler = new Handler(){
             @Override
@@ -163,7 +282,7 @@ public class BookContentActivity extends AppCompatActivity {
                         progressBar.setVisibility(View.GONE);
                     }
                 }
-                else if (msg.what==1){
+                else if (msg.what==1){//已经分了10章
                     Log.i("dividing","dividing");
                     if(bookContent!=null){
                         chapterList = bookDBHelper.selectAllToChapterList(bookName);
@@ -171,13 +290,13 @@ public class BookContentActivity extends AppCompatActivity {
                         progressBar.setVisibility(View.GONE);
                     }
                 }
-                else if (msg.what==0){//已经分了10章
+                else if (msg.what==0){
                     Log.i("dividing","dividing");
                     Log.i("第一次","第一次发送");
                     if(bookContent!=null){
-                        chapterList = bookDBHelper.selectAllToChapterList(bookName);
-                        bookContent.setText(read());
-                        progressBar.setVisibility(View.GONE);
+                        bookContent.setText("正在分章节，请不要操作");
+                        progressBar.setVisibility(View.VISIBLE);
+                        book.setFirstTime("0");
                     }
                 }
             }
@@ -193,11 +312,10 @@ public class BookContentActivity extends AppCompatActivity {
                 String encodingInRun;
                 String bookNameInRun;
                 BookDBHelper DBHelperInRun ;
+                int chapterSum = 0;
                 @Override
                 public void run() {
-                    bookContent.setText("正在分章节，请不要操作");
-                    progressBar.setVisibility(View.VISIBLE);
-                    book.setFirstTime("0");
+                    DBHelperInRun = new BookDBHelper(BookContentActivity.this, BookDBHelper.DB_NAME, null, 1);
                     bookNameInRun = bookName;
                     divideChapter(txtFile);
                     //show=decodeUnicode(show);
@@ -216,8 +334,6 @@ public class BookContentActivity extends AppCompatActivity {
                     String chapterName = "标题";
                     String lastchapterName = "标题";
                     String chapterContent = "";
-                    DBHelperInRun = new BookDBHelper(BookContentActivity.this, BookDBHelper.DB_NAME, null, 1);
-                    int chapterSum = 0;
                     try{
                         RandomAccessFile divFile = new RandomAccessFile(file,"r");
                         divFile.seek(0);
@@ -227,14 +343,22 @@ public class BookContentActivity extends AppCompatActivity {
                         encodingInRun = getFileIncode(content);
                         String line;
                         IsChapter isChapter ;
+                        /*try{
+                            Thread.sleep(100);
+                        }
+                        catch (InterruptedException e){
+                            Log.i(e.getMessage(),e.getMessage());
+                        }*/
+                        //遍历判断每一行看是否为章节
                         while (curPlace<bookSizeInRun){
                             String readline = divFile.readLine();
                             if(readline!=null) line = new String(readline.getBytes("iso8859-1"),encodingInRun);
                             else line = "";
                             curPlace = divFile.getFilePointer();
                             isChapter = new IsChapter(line);
-                            /*Log.i("chapterDiv",String.valueOf(isChapter.getIsTitle()));
-                            Log.i("chapterDiv",line);*/
+                            Log.i("chapterDiv",String.valueOf(isChapter.getIsTitle()));
+                            Log.i("chapterDiv",line);
+                            //如果符合章节格式，记录上一个章节信息
                             if(isChapter.getIsTitle()){
                                 chapterCurPlace = lastChapter;
                                 chapterName = lastchapterName;
@@ -243,9 +367,13 @@ public class BookContentActivity extends AppCompatActivity {
                                 lastChapter = lastLine;
                                 lastchapterName = line;
                                 chapterContent = "";
+                                chapterSum++;
                             }
                             lastLine = divFile.getFilePointer();
                             chapterContent += line;
+                            if(chapterSum==3) {
+                                divChtrHandler.obtainMessage(1).sendToTarget();
+                            }
                         }
                         Log.i("停止时已读字节数",String.valueOf(curPlace));
                         Log.i("停止时字节总数",String.valueOf(bookSizeInRun));
@@ -275,24 +403,67 @@ public class BookContentActivity extends AppCompatActivity {
             }
         }
 
-        //左右翻页按键
-        ImageButton lastPage = (ImageButton) this.findViewById(R.id.lastPage);
-        ImageButton nextPage = (ImageButton) findViewById(R.id.nextPage);
-        ScrollContent = (ScrollView) findViewById(R.id.ScrollContent);
-        lastPage.setOnClickListener(new View.OnClickListener() {
+        //下拉框选择对应的章节
+        chapterStringList = new ArrayList<String>();
+        for(int i = 0; i < chapterList.size();i++){
+            chapterStringList.add(chapterList.get(i).getChapterName());
+        }
+        bottomSpinner = (Spinner) findViewById(R.id.bottomSpinner);
+        bottomSpinnerAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item, chapterStringList);
+        bottomSpinnerAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
+        bottomSpinner.setAdapter(bottomSpinnerAdapter);
+        //下拉框监听器
+        bottomSpinner.setSelection(CurrentPageIndex);
+        bottomSpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
-            public void onClick(View v) {
-                bookContent.setText(getLastPage());
-                ScrollContent.smoothScrollTo(0,0);
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                CurrentPageIndex = position;
+                bookContent.setText(read());
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
             }
         });
-        nextPage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                bookContent.setText(getNextPage());
-                ScrollContent.scrollTo(0,0);
-            }
-        });
+
+        //按sharePreferences内容设置setting
+        setSettings();
+
+
+    }
+
+    public void setSettings(){
+        //按sharePreferences内容设置setting
+        SharedPreferences preferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+        String textSize = preferences.getString("字体","");
+        String readMode = preferences.getString("模式","");
+        TextView contentText = (TextView) findViewById(R.id.contentText);
+        ScrollView ScrollContent = (ScrollView) findViewById(R.id.ScrollContent);
+        if(textSize.isEmpty()||textSize.equals("适中")){
+            contentText.setTextSize(16);
+        }
+        else if (textSize.equals("超大")) {
+            contentText.setTextSize(25);
+        }
+        else if (textSize.equals("大")) {
+            contentText.setTextSize(20);
+        }
+        else if (textSize.equals("小")) {
+            contentText.setTextSize(13);
+        }
+        else if (textSize.equals("超小")) {
+            contentText.setTextSize(10);
+        }
+        if (readMode.equals("日间模式")) {
+            contentText.setTextColor(getResources().getColor(R.color.colorBlack));
+            contentText.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+            ScrollContent.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        }
+        else if (readMode.equals("夜间模式")) {
+            contentText.setTextColor(getResources().getColor(R.color.colorWhite));
+            contentText.setBackgroundColor(getResources().getColor(R.color.colorBlackBackground));
+            ScrollContent.setBackgroundColor(getResources().getColor(R.color.colorBlackBackground));
+        }
     }
 
     public void setRandomAccessFile(File file,String bookName ,long CurrentPlace)  {

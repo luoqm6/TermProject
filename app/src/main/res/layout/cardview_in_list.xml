@@ -26,7 +26,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/folderImg"
-                android:text="血字分析"
+                android:text="选择小说"
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:textSize="15sp"
@@ -36,4 +36,5 @@
         </RelativeLayout>
 
     </android.support.v7.widget.CardView>
+
 </LinearLayout>

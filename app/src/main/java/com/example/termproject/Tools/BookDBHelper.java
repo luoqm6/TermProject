@@ -242,7 +242,6 @@ public class BookDBHelper extends SQLiteOpenHelper {
         //得到数据库以及数据库的cursor，遍历选出sqlite数据库内所有人物
         SQLiteDatabase db = getWritableDatabase();
         Cursor cursor = db.rawQuery("select * from "+CHAPTER_TABLE_NAME+" where bookName = '"+bookName +"'"+" order by _id asc", null);
-
         while(cursor.moveToNext()){
             //遍历Cursor对象，取出数据存入List中
             Chapter chapter = new Chapter();
@@ -250,7 +249,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
             chapter.setChapterName(cursor.getString(cursor.getColumnIndex("chapterName")));
             chapter.setChapterCurPlace(cursor.getString(cursor.getColumnIndex("chapterCurPlace")));
             chapter.setChapterSize(cursor.getString(cursor.getColumnIndex("chapterSize")));
-            Log.i("chapter",chapter.getBookName()+"\n"+chapter.getChapterName()+"\n"+chapter.getChapterCurPlace());
+            Log.i("selectChapter",chapter.getBookName()+"\n"+chapter.getChapterName()+"\n"+chapter.getChapterCurPlace());
             listItems.add(chapter);
         }
         cursor.close();

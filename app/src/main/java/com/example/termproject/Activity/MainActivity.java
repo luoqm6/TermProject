@@ -1,14 +1,18 @@
 package com.example.termproject.Activity;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -23,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.termproject.Model.Book;
+import com.example.termproject.Model.Chapter;
 import com.example.termproject.R;
 import com.example.termproject.Tools.BookDBHelper;
 import com.example.termproject.ViewAdapter.RecyclerViewAdapter;
@@ -42,6 +47,8 @@ public class MainActivity extends AppCompatActivity
     private FloatingActionButton fab;
     private BookDBHelper bookDBHelper;
 
+    //分享对话框alertDialogShare的VIew声明
+    private View view_in;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,20 +60,17 @@ public class MainActivity extends AppCompatActivity
         //变量实例化赋值
         bookDBHelper = new BookDBHelper(this, BookDBHelper.DB_NAME, null, 1);
 
-        /*浮动按钮添加文件方式弹出对话框*/
+        /*添加小说弹出对话框*/
         final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-        final String mitems[] = {"从文件夹中选择txt", "自行设置"};
-        alertDialog.setTitle("添加电子书")
+        final String mitems[] = {"从文件夹中选择小说"};
+        alertDialog.setTitle("添加小说")
                 .setItems(mitems, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        if (mitems[i].equals("从文件夹中选择txt")) {
+                        if (mitems[i].equals("从文件夹中选择小说")) {
                             /*跳转至Repository model*/
                             Intent intent=new Intent(MainActivity.this,FileScannerActivity.class);
                             startActivity(intent);
-                        }
-                        else if (mitems[i].equals("自行设置")) {
-
                         }
                     }
                 })
@@ -74,7 +78,7 @@ public class MainActivity extends AppCompatActivity
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                Toast.makeText(getApplication(), "你点击了取消", Toast.LENGTH_SHORT).show();
+                                //Toast.makeText(getApplication(), "你点击了取消", Toast.LENGTH_SHORT).show();
                             }
                         })
                 .create();
@@ -131,8 +135,70 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.text_size) {
+            final AlertDialog.Builder sizeAlertDialog = new AlertDialog.Builder(this);
+            final String mitems[] = {"字体：超大", "字体：大", "字体：适中","字体：小","字体：超小"};
+            sizeAlertDialog.setTitle("设置字体大小")
+                    .setItems(mitems, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            SharedPreferences preferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = preferences.edit();
+                            if (mitems[i].equals("字体：超大")) {
+                                editor.putString("字体","超大");
+                            }
+                            else if (mitems[i].equals("字体：大")) {
+                                editor.putString("字体","大");
+                            }
+                            else if (mitems[i].equals("字体：适中")) {
+                                editor.putString("字体","适中");
+                            }
+                            else if (mitems[i].equals("字体：小")) {
+                                editor.putString("字体","小");
+                            }
+                            else if (mitems[i].equals("字体：超小")) {
+                                editor.putString("字体","超小");
+                            }
+                            editor.apply();
+                        }
+                    })
+                    .setNegativeButton("取消",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    //Toast.makeText(getApplication(), "你点击了取消", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                    .create().show();
+            return true;
+        }
+        else if(id == R.id.day_night){
+            final AlertDialog.Builder day_nightAlertDialog = new AlertDialog.Builder(this);
+            final String mitems[] = {"日间模式", "夜间模式"};
+            day_nightAlertDialog.setTitle("设置阅读模式")
+                    .setItems(mitems, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            SharedPreferences preferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = preferences.edit();
+                            if (mitems[i].equals("日间模式")) {
+                                /*跳转至Repository model*/
+                                editor.putString("模式","日间模式");
+                            }
+                            else if (mitems[i].equals("夜间模式")) {
+                                editor.putString("模式","夜间模式");
+                            }
+                            editor.apply();
+                        }
+                    })
+                    .setNegativeButton("取消",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    //Toast.makeText(getApplication(), "你点击了取消", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                    .create().show();
             return true;
         }
 
@@ -145,18 +211,81 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
+        if (id == R.id.nav_add_file) {
+            // 导入小说
+            /*跳转至Repository model*/
+            Intent intent=new Intent(MainActivity.this,FileScannerActivity.class);
+            startActivity(intent);
+        } else if (id == R.id.nav_translator) {
+            //跳转至翻译助手
+            /*跳转至Repository model*/
+            Intent intent=new Intent(MainActivity.this,TranslateActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putString("translateContent","");
+            intent.putExtras(bundle);
+            startActivity(intent);
         } else if (id == R.id.nav_share) {
+            //显示对话框，选择文件分享
+            //TODO
+            //设置对话框的布局
+            //短按点击事件显示的修改信息的对话框alertDialogUpdate声明
+            LayoutInflater inflater = LayoutInflater.from(this);// 渲染器
+            View customDialogView = inflater.inflate(R.layout.recycler_in_dialog,null);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        } else if (id == R.id.nav_send) {
+            builder.setNegativeButton("取消",
+                    new DialogInterface.OnClickListener() {
 
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // TODO Auto-generated method stub
+
+                        }
+                    });
+
+            RecyclerView recyclerInDialog = (RecyclerView) customDialogView
+                    .findViewById(R.id.RecyclerViewInDialog);
+            //RecyclerView实现book列表，实例化LayoutManager和RecycleAdapter
+            RecyclerView.LayoutManager layoutManagerInDialog = new LinearLayoutManager(this);
+            final RecyclerViewAdapter adapterInDialog = new RecyclerViewAdapter<Book>(this,R.layout.cardview_in_list,listItems) {
+                //重写convert函数设置每个条目中的
+                @Override
+                public void convert(ViewHolder holder, Book b) {
+                    TextView folderName = holder.getView(R.id.folderName);
+                    ImageView folderImg = holder.getView(R.id.folderImg);
+                    folderImg.setImageResource(R.mipmap.bookicon1);
+                    folderName.setText(b.getBookName());
+                    folderName.setSingleLine();
+                    folderName.setEllipsize(TextUtils.TruncateAt.valueOf("END"));
+                }
+            };
+            adapterInDialog.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener(){
+                @Override
+                public void onClick(View view, int position){
+                /*跳转至阅读界面*/
+                    if(listItems.get(position).getBookTxtPath()!=null && !listItems.get(position).getBookTxtPath().isEmpty()) {
+                        share(listItems.get(position).getBookTxtPath());
+                    }
+                    else{
+                        Toast.makeText(getApplication(),"文件不存在!",Toast.LENGTH_LONG);
+                        listItems.remove(position);
+                        adapterInDialog.notifyDataSetChanged();
+                    }
+                }
+                @Override
+                public boolean onLongClick(View view,final int position){
+
+                    return true;
+                }
+            });
+            // 设置布局管理器
+            recyclerInDialog.setLayoutManager(layoutManagerInDialog);
+            // 设置adapter
+            recyclerInDialog.setAdapter(adapterInDialog);
+            builder.setTitle("选择小说");
+            // builder.setTitle("意见模版");
+            builder.setView(customDialogView);
+            builder.create().show();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -187,7 +316,7 @@ public class MainActivity extends AppCompatActivity
         recycleAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener(){
             @Override
             public void onClick(View view, int position){
-                /*跳转至Repository model*/
+                /*跳转至阅读界面*/
                 if(listItems.get(position).getBookTxtPath()!=null && !listItems.get(position).getBookTxtPath().isEmpty()) {
                     Intent intent = new Intent(MainActivity.this, BookContentActivity.class);
                     Bundle bundle = new Bundle();
@@ -205,7 +334,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onLongClick(View view,final int position){
                 AlertDialog.Builder builder=new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("从列表中删除图书?")
+                builder.setMessage("从列表中删除小说?")
                         .setNegativeButton("取消", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
@@ -231,5 +360,21 @@ public class MainActivity extends AppCompatActivity
         recyclerView.setLayoutManager(layoutManager);
         // 设置adapter
         recyclerView.setAdapter(recycleAdapter);
+    }
+
+    //分享文件
+    public void share(String path){
+        File file = new File(path);
+        /** * 分享文字内容 */
+        Intent share_intent = new Intent();
+        share_intent.setAction(Intent.ACTION_SEND);//设置分享行为
+        share_intent.setType( "*/*" );//设置分享内容的类型
+        //share_intent.setType("text/plain");//设置分享内容的类型
+        // 比如发送二进制文件数据流内容（比如图片、视频、音频文件等等）
+        // 指定发送的内容 (EXTRA_STREAM 对于文件 Uri )
+        share_intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+        //创建分享的Dialog
+        share_intent = Intent.createChooser(share_intent, "分享至...");
+        startActivity(share_intent);
     }
 }

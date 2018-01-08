@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.termproject.Activity.TranslateActivity">
+
+    <EditText
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:text=""
+        android:id="@+id/query"
+        android:textSize="20sp"
+        android:hint="请输入翻译内容"
+        android:gravity="top"
+        android:isScrollContainer="true"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/spinner"
+        />
+
+    <Spinner
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/showT"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/t1"
+        app:layout_constraintTop_toBottomOf="@+id/query"
+        android:spinnerMode="dialog"
+        style="@style/Animation.AppCompat.Dialog"
+
+        >
+
+    </Spinner>
+
+    <TextView
+        android:layout_width="368dp"
+        android:layout_height="1dp"
+        android:background="#808080"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintBottom_toTopOf="@+id/showTScroll"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spinner" />
+    <ScrollView
+        android:id="@+id/showTScroll"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spinner">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/showT"
+            android:textSize="20sp"
+            android:isScrollContainer="true"
+            android:text="翻译结果"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+             />
+    </ScrollView>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="翻译"
+        android:textSize="20sp"
+        android:id="@+id/t1"
+        app:layout_constraintRight_toLeftOf="@+id/t2"
+        app:layout_constraintLeft_toRightOf="@+id/spinner"
+        app:layout_constraintTop_toBottomOf="@+id/query"
+        app:layout_constraintBottom_toTopOf="@+id/showTScroll"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="清空"
+        android:textSize="20sp"
+        android:id="@+id/t2"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/t1"
+        app:layout_constraintTop_toBottomOf="@+id/query"
+        app:layout_constraintBottom_toTopOf="@+id/showTScroll"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="请选择语言"
+        android:layout_marginLeft="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/spinner"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginBottom="10dp"
+        android:layout_marginStart="5dp" />
+
+
+
+</android.support.constraint.ConstraintLayout>

@@ -12,6 +12,7 @@ public class DivideChapterService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         // TODO Auto-generated method stub
+        context = this;
         return null;
     }
 
