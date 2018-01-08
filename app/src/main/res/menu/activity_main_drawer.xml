@@ -2,22 +2,23 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_add_file"
-            android:icon="@mipmap/txtfileicon2"
-            android:title="添加小说" />
-        <item
-            android:id="@+id/nav_translator"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="翻译助手" />
-    </group>
 
-    <item android:title="分享">
+    </group>
+    <item android:title="功能菜单">
         <menu>
+            <item
+                android:id="@+id/nav_add_file"
+                android:icon="@mipmap/txtfileicon2"
+                android:title="添加小说" />
+            <item
+                android:id="@+id/nav_translator"
+                android:icon="@mipmap/fanyi"
+                android:title="翻译助手" />
             <item
                 android:id="@+id/nav_share"
                 android:icon="@drawable/ic_menu_share"
                 android:title="分享小说" />
+
         </menu>
     </item>
 

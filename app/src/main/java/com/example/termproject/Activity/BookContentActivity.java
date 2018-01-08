@@ -14,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -245,14 +246,16 @@ public class BookContentActivity extends AppCompatActivity {
         lastPage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                bookContent.setText(getLastPage());
+                //bookContent.setText(getLastPage());
+                getLastPage();
                 ScrollContent.smoothScrollTo(0,0);
             }
         });
         nextPage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                bookContent.setText(getNextPage());
+                //bookContent.setText(getNextPage());
+                getNextPage();
                 ScrollContent.scrollTo(0,0);
             }
         });
@@ -263,7 +266,7 @@ public class BookContentActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent=new Intent(BookContentActivity.this,TranslateActivity.class);
                 Bundle bundle = new Bundle();
-                bundle.putString("translateContent",bookContent.getText().toString());
+                bundle.putString("translateContent","");
                 intent.putExtras(bundle);
                 startActivity(intent);
             }
@@ -278,7 +281,12 @@ public class BookContentActivity extends AppCompatActivity {
                     Log.i("finished dividing","finished dividing");
                     if(bookContent!=null){
                         chapterList = bookDBHelper.selectAllToChapterList(bookName);
-                        bookContent.setText(read());
+                        chapterStringList.clear();
+                        for(int i = 0; i < chapterList.size();i++){
+                            chapterStringList.add(chapterList.get(i).getChapterName());
+                        }
+                        bottomSpinnerAdapter.notifyDataSetChanged();
+                        bottomSpinner.setSelection(CurrentPageIndex);
                         progressBar.setVisibility(View.GONE);
                     }
                 }
@@ -286,7 +294,13 @@ public class BookContentActivity extends AppCompatActivity {
                     Log.i("dividing","dividing");
                     if(bookContent!=null){
                         chapterList = bookDBHelper.selectAllToChapterList(bookName);
-                        bookContent.setText(read());
+                        chapterStringList.clear();
+                        for(int i = 0; i < chapterList.size();i++){
+                            chapterStringList.add(chapterList.get(i).getChapterName());
+                        }
+                        bottomSpinnerAdapter.notifyDataSetChanged();
+                        CurrentPageIndex=0;
+                        bottomSpinner.setSelection(CurrentPageIndex);
                         progressBar.setVisibility(View.GONE);
                     }
                 }
@@ -539,19 +553,27 @@ public class BookContentActivity extends AppCompatActivity {
             readStr += lineStr + "\n";
             Log.i("CurrentPageIndex",String.valueOf(CurrentPageIndex));
             //Log.i("chapterList.size()",String.valueOf(chapterList.size()));
-            if(CurrentPageIndex == chapterList.size()-1){//最后一个章节的处理
-                //一直读行直到全书完毕
-                while(randomAccessFile.getFilePointer() < bookSize){
-                    lineStr = new String(randomAccessFile.readLine().getBytes("iso8859-1"),encoding);
+            if(chapterList.size() == 0){
+                randomAccessFile.seek(0);
+                while (randomAccessFile.getFilePointer() < bookSize) {
+                    lineStr = new String(randomAccessFile.readLine().getBytes("iso8859-1"), encoding);
                     readStr += lineStr + "\n";
                 }
             }
-            else{
-                //一直读行直到下一个章节
-                while(randomAccessFile.getFilePointer()
-                        < Long.parseLong(chapterList.get(NextPageIndex).getChapterCurPlace())){
-                    lineStr = new String(randomAccessFile.readLine().getBytes("iso8859-1"),encoding);
-                    readStr += lineStr + "\n";
+            else {
+                if (CurrentPageIndex == chapterList.size() - 1) {//最后一个章节的处理
+                    //一直读行直到全书完毕
+                    while (randomAccessFile.getFilePointer() < bookSize) {
+                        lineStr = new String(randomAccessFile.readLine().getBytes("iso8859-1"), encoding);
+                        readStr += lineStr + "\n";
+                    }
+                } else {
+                    //一直读行直到下一个章节
+                    while (randomAccessFile.getFilePointer()
+                            < Long.parseLong(chapterList.get(NextPageIndex).getChapterCurPlace())) {
+                        lineStr = new String(randomAccessFile.readLine().getBytes("iso8859-1"), encoding);
+                        readStr += lineStr + "\n";
+                    }
                 }
             }
         } catch (Exception e) {
@@ -565,17 +587,21 @@ public class BookContentActivity extends AppCompatActivity {
     public String getLastPage(){
         String content ;
         CurrentPageIndex = LastPageIndex;
+        bottomSpinner.setSelection(CurrentPageIndex);
         //第一页 的情况 定位在0字节处 读取内容 当前页数不改变
-        content = read();
-        return content;
+        //content = read();
+        //return content;
+        return "";
     }
 
     //下一页功能的实现
     public String getNextPage(){
         String content ;
         CurrentPageIndex = NextPageIndex;
-        content = read();
-        return content;
+        bottomSpinner.setSelection(CurrentPageIndex);
+        //content = read();
+        //return content;
+        return "";
     }
 
     public long getCurrentPlace(){

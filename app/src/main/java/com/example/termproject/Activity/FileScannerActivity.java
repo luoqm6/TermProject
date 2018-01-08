@@ -138,9 +138,7 @@ public class FileScannerActivity extends Activity {
                                         long pageSum = randomAccessFile.length();//获得字节总数
                                         if(pageSum<=0) pageSum =1;
                                         pageSum +=1;
-                                        pageSumStr = String.valueOf(pageSum);//TODO 为什么是0？？
-
-                                        Toast.makeText(getApplication(),pageSumStr,Toast.LENGTH_SHORT).show();
+                                        pageSumStr = String.valueOf(pageSum);
                                         randomAccessFile.close();
                                     }
                                     catch (IOException e){
