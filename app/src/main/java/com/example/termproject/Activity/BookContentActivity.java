@@ -31,7 +31,6 @@ import android.widget.Toast;
 import com.example.termproject.Model.Book;
 import com.example.termproject.Model.Chapter;
 import com.example.termproject.R;
-import com.example.termproject.Service.DivideChapterService;
 import com.example.termproject.Tools.BookDBHelper;
 import com.example.termproject.Tools.IsChapter;
 
@@ -56,7 +55,6 @@ public class BookContentActivity extends AppCompatActivity {
     private Bundle bundle;
     private Book book;
     private String bookTxtPath;
-    //private TxtPlayer txtPlayer;
 
     private long bookSize;//总字节数
     private String bookName;//书名
@@ -211,8 +209,6 @@ public class BookContentActivity extends AppCompatActivity {
         progressBar.setVisibility(View.GONE);
         //主要内容
         bookContent = (TextView) this.findViewById(R.id.contentText);
-        //当前页可以显示的字符数
-        //pageLineNum = 200;
 
         bookTitle = (TextView) this.findViewById(R.id.titleText);
 
@@ -226,7 +222,6 @@ public class BookContentActivity extends AppCompatActivity {
         final File txtFile = new File(book.getBookTxtPath());
 
         //初始化RandomAccessFile,检测设置文件编码类型
-        //txtPlayer = new TxtPlayer(txtFile,book.getBookName(),Long.parseLong(book.getBookCurPlace()));
         setRandomAccessFile(txtFile,book.getBookName(),Long.parseLong(book.getBookCurPlace()));
 
 
@@ -246,17 +241,13 @@ public class BookContentActivity extends AppCompatActivity {
         lastPage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //bookContent.setText(getLastPage());
                 getLastPage();
-                ScrollContent.smoothScrollTo(0,0);
             }
         });
         nextPage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //bookContent.setText(getNextPage());
                 getNextPage();
-                ScrollContent.scrollTo(0,0);
             }
         });
         //跳转至翻译的按键设置
@@ -288,9 +279,10 @@ public class BookContentActivity extends AppCompatActivity {
                         bottomSpinnerAdapter.notifyDataSetChanged();
                         bottomSpinner.setSelection(CurrentPageIndex);
                         progressBar.setVisibility(View.GONE);
+
                     }
                 }
-                else if (msg.what==1){//已经分了10章
+                else if (msg.what==1){//已经分了3章
                     Log.i("dividing","dividing");
                     if(bookContent!=null){
                         chapterList = bookDBHelper.selectAllToChapterList(bookName);
@@ -332,7 +324,6 @@ public class BookContentActivity extends AppCompatActivity {
                     DBHelperInRun = new BookDBHelper(BookContentActivity.this, BookDBHelper.DB_NAME, null, 1);
                     bookNameInRun = bookName;
                     divideChapter(txtFile);
-                    //show=decodeUnicode(show);
                     divChtrHandler.obtainMessage(2).sendToTarget();
                     //book.setFirstTime("0");
                 }
@@ -357,12 +348,6 @@ public class BookContentActivity extends AppCompatActivity {
                         encodingInRun = getFileIncode(content);
                         String line;
                         IsChapter isChapter ;
-                        /*try{
-                            Thread.sleep(100);
-                        }
-                        catch (InterruptedException e){
-                            Log.i(e.getMessage(),e.getMessage());
-                        }*/
                         //遍历判断每一行看是否为章节
                         while (curPlace<bookSizeInRun){
                             String readline = divFile.readLine();
@@ -411,6 +396,7 @@ public class BookContentActivity extends AppCompatActivity {
             chapterList = bookDBHelper.selectAllToChapterList(bookName);
             if(!bookTxtPath.isEmpty()){
                 bookContent.setText(read());
+                ScrollContent.smoothScrollTo(0,0);
             }
             else{
                 Toast.makeText(getApplication(),"文件已不存在",Toast.LENGTH_LONG).show();
@@ -446,6 +432,7 @@ public class BookContentActivity extends AppCompatActivity {
 
     }
 
+    //设置字体和背景颜色
     public void setSettings(){
         //按sharePreferences内容设置setting
         SharedPreferences preferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
@@ -480,6 +467,7 @@ public class BookContentActivity extends AppCompatActivity {
         }
     }
 
+	//初始化设置好randomaccessfile
     public void setRandomAccessFile(File file,String bookName ,long CurrentPlace)  {
         this.bookName = bookName;
         try {
@@ -576,6 +564,7 @@ public class BookContentActivity extends AppCompatActivity {
                     }
                 }
             }
+			//ScrollContent.smoothScrollTo(0,0);
         } catch (Exception e) {
             e.printStackTrace();
             Log.i("readStrerror",e.getMessage());
